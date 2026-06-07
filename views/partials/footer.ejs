@@ -1,1 +1,37 @@
-<%# footer placeholder for scripts cleanup %>
+  </main>
+
+  <div class="mini-player" id="miniPlayer">
+    <div class="mini-player-progress" id="miniProgress"></div>
+    <div class="mini-player-content" onclick="window.location.href='/now-playing'">
+      <div class="mini-artwork" id="miniArtwork">
+        <div class="mini-artwork-placeholder">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </div>
+      </div>
+      <div class="mini-info">
+        <div class="mini-title" id="miniTitle">Not Playing</div>
+        <div class="mini-artist" id="miniArtist">No tracks in queue</div>
+      </div>
+      <div class="mini-controls">
+        <button class="mini-btn" id="miniPlayBtn" onclick="event.stopPropagation(); togglePlay()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+        <button class="mini-btn" onclick="event.stopPropagation(); window.location.href='/now-playing'" aria-label="Now Playing">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/player.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      document.body.classList.add('pwa-mode');
+    }
+  </script>
+</body>
+</html>

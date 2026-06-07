@@ -24,6 +24,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Global middleware for view variables
+app.use((req, res, next) => {
+  try {
+    const queueCount = query('SELECT COUNT(*) as count FROM queue')[0]?.count || 0;
+    const recentSearches = query('SELECT * FROM search_history ORDER BY date_searched DESC LIMIT 10');
+    res.locals.queueCount = queueCount;
+    res.locals.recentSearches = recentSearches || [];
+  } catch(e) {
+    res.locals.queueCount = 0;
+    res.locals.recentSearches = [];
+  }
+  next();
+});
+
 // WebSocket connections
 const clients = new Set();
 
