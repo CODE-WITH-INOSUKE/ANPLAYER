@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>Ambient Mode - ANPlayer</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .ambient-container { width: 100%; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; }
+    .ambient-bg { position: fixed; inset: 0; background: #000; z-index: 0; transition: background 1s ease; }
+    .ambient-artwork { width: min(70vw, 400px); height: min(70vw, 400px); border-radius: 12px; overflow: hidden; position: relative; z-index: 1; margin-bottom: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); }
+    .ambient-artwork img { width: 100%; height: 100%; object-fit: cover; }
+    .ambient-artwork-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #111; }
+    .ambient-info { text-align: center; position: relative; z-index: 1; }
+    .ambient-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 4px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+    .ambient-artist { font-size: 1rem; opacity: 0.7; margin-bottom: 20px; }
+    .ambient-time { font-size: 4rem; font-weight: 200; letter-spacing: 2px; position: relative; z-index: 1; text-shadow: 0 2px 20px rgba(0,0,0,0.5); margin-bottom: 10px; }
+    .ambient-date { font-size: 1rem; opacity: 0.5; position: relative; z-index: 1; }
+    .ambient-status { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; opacity: 0.3; z-index: 1; display: flex; align-items: center; gap: 6px; }
+    .ambient-pulse { width: 6px; height: 6px; border-radius: 50%; background: #fff; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+    .ambient-actions { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 16px; z-index: 1; }
+    .ambient-actions button { background: rgba(255,255,255,0.1); border: none; color: #fff; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(10px); transition: background 0.2s; }
+    .ambient-actions button:active { background: rgba(255,255,255,0.2); }
+    .ambient-actions .play-btn { width: 56px; height: 56px; background: rgba(255,255,255,0.15); }
+  </style>
+</head>
+<body>
+  <div class="ambient-container" onclick="togglePlay()">
+    <div class="ambient-bg" id="ambientBg"></div>
+    <div class="ambient-artwork" id="ambientArtwork">
+      <div class="ambient-artwork-placeholder">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+      </div>
+    </div>
+    <div class="ambient-info">
+      <div class="ambient-title" id="ambientTitle">Not Playing</div>
+      <div class="ambient-artist" id="ambientArtist">Tap to play/pause</div>
+    </div>
+    <div class="ambient-time" id="ambientTime">00:00</div>
+    <div class="ambient-date" id="ambientDate"></div>
+    <div class="ambient-status">
+      <div class="ambient-pulse" id="ambientPulse"></div>
+      <span id="ambientStatus">Playing</span>
+    </div>
+    <div class="ambient-actions">
+      <button onclick="event.stopPropagation(); prevTrack()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+      </button>
+      <button class="play-btn" id="ambientPlayBtn" onclick="event.stopPropagation(); togglePlay()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" id="ambientPlayIcon"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </button>
+      <button onclick="event.stopPropagation(); nextTrack()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18 6h2v12h-2zm-3.5 6l-8.5 6V6z"/></svg>
+      </button>
+    </div>
+  </div>
+  <script src="/js/app.js"></script>
+  <script src="/js/ambient.js"></script>
+</body>
+</html>

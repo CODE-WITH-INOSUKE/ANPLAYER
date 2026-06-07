@@ -1,0 +1,17 @@
+<div class="page create-playlist-page">
+  <div class="page-header">
+    <h1>New Playlist</h1>
+  </div>
+  <form method="POST" action="/playlists/new" class="playlist-form">
+    <div class="form-group">
+      <label for="name">Playlist Name</label>
+      <input type="text" id="name" name="name" placeholder="My Playlist" required class="form-input" autofocus>
+    </div>
+    <div class="form-group">
+      <label for="description">Description (optional)</label>
+      <textarea id="description" name="description" placeholder="Add a description..." class="form-input" rows="3"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Create Playlist</button>
+    <a href="/playlists" class="btn">Cancel</a>
+  </form>
+</div>

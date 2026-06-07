@@ -1,0 +1,148 @@
+<div class="page settings-page">
+  <div class="page-header">
+    <h1>Settings</h1>
+  </div>
+
+  <form method="POST" action="/settings/update" class="settings-form">
+    <section class="settings-section">
+      <h2>Theme</h2>
+      <div class="setting-row">
+        <label>Appearance</label>
+        <select name="theme" class="form-input">
+          <option value="amoled" <%= settings.theme === 'amoled' ? 'selected' : '' %>>AMOLED Black</option>
+          <option value="dark" <%= settings.theme === 'dark' ? 'selected' : '' %>>Dark Gray</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="settings-section">
+      <h2>Playback</h2>
+      <div class="setting-row">
+        <label>Gapless Playback</label>
+        <label class="toggle">
+          <input type="checkbox" name="gapless" value="1" <%= settings.gapless === '1' ? 'checked' : '' %>>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <label>Crossfade</label>
+        <label class="toggle">
+          <input type="checkbox" name="crossfade" value="1" <%= settings.crossfade === '1' ? 'checked' : '' %>>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <label>Crossfade Duration (seconds)</label>
+        <input type="number" name="crossfade_duration" value="<%= settings.crossfade_duration || '3' %>" min="1" max="10" class="form-input short">
+      </div>
+      <div class="setting-row">
+        <label>Audio Normalization</label>
+        <label class="toggle">
+          <input type="checkbox" name="audio_normalization" value="1" <%= settings.audio_normalization === '1' ? 'checked' : '' %>>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <label>Playback Speed</label>
+        <select name="playback_speed" class="form-input">
+          <option value="0.5" <%= settings.playback_speed === '0.5' ? 'selected' : '' %>>0.5x</option>
+          <option value="0.75" <%= settings.playback_speed === '0.75' ? 'selected' : '' %>>0.75x</option>
+          <option value="1.0" <%= settings.playback_speed === '1.0' || !settings.playback_speed ? 'selected' : '' %>>1.0x</option>
+          <option value="1.25" <%= settings.playback_speed === '1.25' ? 'selected' : '' %>>1.25x</option>
+          <option value="1.5" <%= settings.playback_speed === '1.5' ? 'selected' : '' %>>1.5x</option>
+          <option value="2.0" <%= settings.playback_speed === '2.0' ? 'selected' : '' %>>2.0x</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="settings-section">
+      <h2>Downloads</h2>
+      <div class="setting-row">
+        <label>Download Path</label>
+        <input type="text" name="download_path" value="<%= settings.download_path || 'data/downloads' %>" class="form-input">
+      </div>
+      <div class="setting-row">
+        <label>Download Quality</label>
+        <select name="download_quality" class="form-input">
+          <option value="64" <%= settings.download_quality === '64' ? 'selected' : '' %>>64 kbps</option>
+          <option value="128" <%= settings.download_quality === '128' || !settings.download_quality ? 'selected' : '' %>>128 kbps</option>
+          <option value="192" <%= settings.download_quality === '192' ? 'selected' : '' %>>192 kbps</option>
+          <option value="256" <%= settings.download_quality === '256' ? 'selected' : '' %>>256 kbps</option>
+          <option value="320" <%= settings.download_quality === '320' ? 'selected' : '' %>>320 kbps</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label>Download Format</label>
+        <select name="download_format" class="form-input">
+          <option value="mp3" <%= settings.download_format === 'mp3' || !settings.download_format ? 'selected' : '' %>>MP3</option>
+          <option value="m4a" <%= settings.download_format === 'm4a' ? 'selected' : '' %>>M4A/AAC</option>
+          <option value="opus" <%= settings.download_format === 'opus' ? 'selected' : '' %>>Opus</option>
+          <option value="flac" <%= settings.download_format === 'flac' ? 'selected' : '' %>>FLAC</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="settings-section">
+      <h2>Visualizer</h2>
+      <div class="setting-row">
+        <label>Visualizer Mode</label>
+        <select name="visualizer" class="form-input">
+          <option value="spectrum" <%= settings.visualizer === 'spectrum' ? 'selected' : '' %>>Spectrum Analyzer</option>
+          <option value="waveform" <%= settings.visualizer === 'waveform' ? 'selected' : '' %>>Waveform</option>
+          <option value="circular" <%= settings.visualizer === 'circular' ? 'selected' : '' %>>Circular</option>
+          <option value="none" <%= settings.visualizer === 'none' ? 'selected' : '' %>>None</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="settings-section">
+      <h2>Dock Mode</h2>
+      <div class="setting-row">
+        <label>Auto-hide UI</label>
+        <label class="toggle">
+          <input type="checkbox" name="dock_auto_hide" value="1" <%= settings.dock_auto_hide === '1' ? 'checked' : '' %>>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <section class="settings-section">
+      <h2>Library</h2>
+      <div class="setting-row">
+        <label>Scan Local Downloads</label>
+        <a href="/settings/refresh-library" class="btn" onclick="event.preventDefault(); fetch('/settings/refresh-library', {method:'POST'}).then(()=>location.reload())">Scan Now</a>
+      </div>
+      <div class="setting-row">
+        <label>Clear Playback History</label>
+        <form method="POST" action="/settings/clear-history" style="display:inline">
+          <button type="submit" class="btn btn-danger" onclick="return confirm('Clear all history?')">Clear</button>
+        </form>
+      </div>
+    </section>
+
+    <button type="submit" class="btn btn-primary">Save Settings</button>
+  </form>
+
+  <% if (downloads.length > 0) { %>
+  <section class="settings-section">
+    <h2>Recent Downloads</h2>
+    <div class="download-list">
+      <% downloads.forEach(function(dl) { %>
+      <div class="download-item">
+        <div class="download-info">
+          <span class="download-title"><%= dl.title || 'Unknown' %></span>
+          <span class="download-artist"><%= dl.artist || '' %></span>
+        </div>
+        <div class="download-status <%= dl.status %>"><%= dl.status %></div>
+        <% if (dl.status === 'downloading') { %>
+        <div class="download-progress-bar">
+          <div class="download-progress-fill" style="width:<%= dl.progress %>%"></div>
+        </div>
+        <span class="download-progress-text"><%= Math.round(dl.progress) %>%</span>
+        <% } %>
+      </div>
+      <% }) %>
+    </div>
+  </section>
+  <% } %>
+</div>
