@@ -19,6 +19,28 @@ router.get('/api/queue/count', (req, res) => {
   res.json(count);
 });
 
+router.post('/api/queue/add', (req, res) => {
+  const { youtube_id, title, artist, album, duration, artwork } = req.body;
+  if (!youtube_id) return res.status(400).json({ success: false, error: 'Missing youtube_id' });
+  try {
+    let song = get('SELECT * FROM songs WHERE youtube_id = ?', { youtube_id });
+    if (!song) {
+      const result = run(`INSERT INTO songs (title, artist, album, duration, artwork, youtube_id, source) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        { title: title || 'Unknown', artist: artist || 'Unknown', album: album || '', duration: duration || 0, artwork: artwork || '', youtube_id, source: 'youtube' });
+      song = get('SELECT * FROM songs WHERE id = ?', { id: result.lastInsertRowid });
+    }
+    if (song) {
+      const maxPos = get('SELECT COALESCE(MAX(position), -1) + 1 as pos FROM queue');
+      run('INSERT INTO queue (song_id, position) VALUES (?, ?)', { song_id: song.id, position: maxPos.pos || 0 });
+      res.json({ success: true, song });
+    } else {
+      res.json({ success: false, error: 'Failed to save song' });
+    }
+  } catch(e) {
+    res.json({ success: false, error: e.message });
+  }
+});
+
 router.get('/api/songs', (req, res) => {
   const { q, artist, album, limit = 50, offset = 0 } = req.query;
   let sql = 'SELECT * FROM songs WHERE 1=1';

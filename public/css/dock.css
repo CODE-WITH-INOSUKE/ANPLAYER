@@ -1,81 +1,94 @@
-.dock-body { background: #000; overflow: hidden; height: 100vh; width: 100vw; padding: 0; }
-.dock-container { width: 100vw; height: 100vh; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+.dock-body { background: #000; overflow: hidden; height: 100dvh; width: 100vw; padding: 0; margin: 0; }
+.dock-container { width: 100vw; height: 100dvh; display: flex; flex-direction: column; position: relative; overflow: hidden; }
 .dock-background { position: absolute; inset: -40px; z-index: 0; background: #000; transition: background 1s ease; filter: blur(80px); opacity: 0.5; }
-.dock-visualizer { position: absolute; inset: 0; z-index: 0; opacity: 0.15; pointer-events: none; }
+.dock-visualizer { position: absolute; inset: 0; z-index: 0; opacity: 0.12; pointer-events: none; }
 #dockVisualizerCanvas { width: 100%; height: 100%; }
 
-.dock-content { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; padding: 16px; }
+.dock-content { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; padding: 16px 16px 0; }
 
-.dock-top-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
-.dock-time { font-size: 1.8rem; font-weight: 200; letter-spacing: 2px; }
-.dock-date { font-size: 0.8rem; opacity: 0.5; }
+.dock-top-bar { display: flex; align-items: center; justify-content: space-between; padding: max(8px, env(safe-area-inset-top)) 0 8px; }
+.dock-time { font-size: 1.6rem; font-weight: 200; letter-spacing: 2px; }
+.dock-date { font-size: 0.75rem; opacity: 0.5; }
 .dock-top-actions { display: flex; gap: 8px; }
-.dock-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: rgba(255,255,255,0.5); transition: all 0.2s; }
+.dock-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: rgba(255,255,255,0.5); transition: all 0.2s; cursor: pointer; }
 .dock-btn:active { background: rgba(255,255,255,0.1); color: #fff; }
 
-.dock-main { display: flex; flex: 1; align-items: center; gap: 40px; justify-content: center; }
+.dock-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; overflow: hidden; }
 .dock-artwork-section { flex-shrink: 0; }
-.dock-artwork { width: min(40vw, 300px); height: min(40vw, 300px); border-radius: 16px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.6); }
+.dock-artwork { width: min(55vw, 280px); height: min(55vw, 280px); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
 .dock-artwork img { width: 100%; height: 100%; object-fit: cover; }
 .dock-artwork-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg-tertiary); color: var(--text-tertiary); }
 
-.dock-queue-section { flex: 1; max-width: 300px; min-width: 200px; }
-.dock-queue-header { display: flex; justify-content: space-between; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.5; margin-bottom: 12px; }
-.dock-queue-list { display: flex; flex-direction: column; gap: 4px; }
-.dock-queue-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; opacity: 0.6; }
+.dock-queue-section { width: 100%; max-width: 400px; }
+.dock-queue-header { display: flex; justify-content: space-between; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.5; margin-bottom: 8px; }
+.dock-queue-list { display: flex; flex-direction: column; gap: 2px; max-height: 120px; overflow-y: auto; }
+.dock-queue-item { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 6px; opacity: 0.6; }
 .dock-queue-item.current { opacity: 1; background: rgba(255,255,255,0.05); }
-.dock-queue-item-img { width: 28px; height: 28px; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+.dock-queue-item-img { width: 24px; height: 24px; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
 .dock-queue-item-img img { width: 100%; height: 100%; object-fit: cover; }
 .dock-queue-item-info { flex: 1; min-width: 0; }
-.dock-queue-item-title { font-size: 0.75rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dock-queue-item-artist { font-size: 0.65rem; opacity: 0.5; }
-.dock-queue-empty { font-size: 0.75rem; opacity: 0.3; text-align: center; padding: 20px; }
+.dock-queue-item-title { font-size: 0.7rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dock-queue-item-artist { font-size: 0.6rem; opacity: 0.5; }
+.dock-queue-empty { font-size: 0.7rem; opacity: 0.3; text-align: center; padding: 12px; }
 
-.dock-info-section { text-align: center; padding: 12px 0; }
-.dock-title { font-size: 1.2rem; font-weight: 600; letter-spacing: -0.3px; }
-.dock-artist { font-size: 0.9rem; opacity: 0.5; margin-top: 2px; }
+.dock-info-section { text-align: center; padding: 4px 0; }
+.dock-title { font-size: 1.1rem; font-weight: 600; letter-spacing: -0.3px; }
+.dock-artist { font-size: 0.85rem; opacity: 0.5; margin-top: 2px; }
 
-.dock-controls { max-width: 700px; margin: 0 auto; width: 100%; }
-.dock-progress { margin-bottom: 12px; }
-.dock-progress-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; cursor: pointer; }
+.dock-controls { width: 100%; max-width: 500px; margin: 0 auto; }
+.dock-progress { margin-bottom: 8px; }
+.dock-progress-bar { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; cursor: pointer; }
 .dock-progress-fill { height: 100%; background: #fff; border-radius: 2px; width: 0%; transition: width 0.3s linear; }
-.dock-time-labels { display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.4; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.dock-time-labels { display: flex; justify-content: space-between; font-size: 0.65rem; opacity: 0.4; margin-top: 2px; font-variant-numeric: tabular-nums; }
 
-.dock-buttons { display: flex; align-items: center; justify-content: center; gap: 24px; margin-bottom: 12px; }
-.dock-ctrl-btn { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.7); transition: all 0.2s; }
+.dock-buttons { display: flex; align-items: center; justify-content: center; gap: 32px; margin-bottom: 8px; }
+.dock-ctrl-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.7); transition: all 0.2s; cursor: pointer; }
 .dock-ctrl-btn:active { transform: scale(0.9); color: #fff; }
-.dock-play-btn { width: 64px; height: 64px; border-radius: 50%; background: #fff; color: #000; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+.dock-play-btn { width: 60px; height: 60px; border-radius: 50%; background: #fff; color: #000; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; cursor: pointer; }
 .dock-play-btn:active { transform: scale(0.92); }
 
-.dock-volume { display: flex; align-items: center; justify-content: center; gap: 12px; }
-.dock-volume-slider { width: 120px; height: 3px; -webkit-appearance: none; appearance: none; background: rgba(255,255,255,0.15); border-radius: 2px; outline: none; }
-.dock-volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+.dock-volume { display: flex; align-items: center; justify-content: center; gap: 10px; padding-bottom: 8px; }
+.dock-volume-slider { width: 100px; height: 3px; -webkit-appearance: none; appearance: none; background: rgba(255,255,255,0.15); border-radius: 2px; outline: none; }
+.dock-volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: none; }
 
-.dock-ambient-toggle { position: fixed; bottom: 80px; right: 16px; z-index: 2; }
-.dock-ambient-toggle button { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+.dock-ambient-toggle { position: fixed; bottom: calc(80px + env(safe-area-inset-bottom)); right: 16px; z-index: 2; }
+.dock-ambient-toggle button { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); cursor: pointer; color: rgba(255,255,255,0.6); }
 
-.dock-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; gap: 40px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.05); z-index: 2; }
-.dock-nav-btn { color: rgba(255,255,255,0.4); transition: color 0.2s; }
+.dock-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; gap: 32px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.05); z-index: 2; }
+.dock-nav-btn { color: rgba(255,255,255,0.4); transition: color 0.2s; padding: 4px; }
 .dock-nav-btn:active { color: #fff; }
 
 /* Auto-hide */
 .dock-container.auto-hide .dock-top-bar,
 .dock-container.auto-hide .dock-nav,
-.dock-container.auto-hide .dock-ambient-toggle { opacity: 0; transition: opacity 0.5s; }
+.dock-container.auto-hide .dock-ambient-toggle,
+.dock-container.auto-hide .dock-queue-section { opacity: 0; transition: opacity 0.6s ease; pointer-events: none; }
 .dock-container.auto-hide:hover .dock-top-bar,
 .dock-container.auto-hide:hover .dock-nav,
-.dock-container.auto-hide:hover .dock-ambient-toggle { opacity: 1; }
-.dock-container.auto-hide .dock-queue-section { opacity: 0; transition: opacity 0.5s; }
-.dock-container.auto-hide:hover .dock-queue-section { opacity: 1; }
+.dock-container.auto-hide:hover .dock-ambient-toggle,
+.dock-container.auto-hide:hover .dock-queue-section,
+.dock-container.auto-hide.touch-active .dock-top-bar,
+.dock-container.auto-hide.touch-active .dock-nav,
+.dock-container.auto-hide.touch-active .dock-ambient-toggle,
+.dock-container.auto-hide.touch-active .dock-queue-section { opacity: 1; pointer-events: auto; }
 
-/* Landscape optimization */
-@media (orientation: landscape) {
-  .dock-main { flex-direction: row; }
-  .dock-artwork { width: min(30vw, 250px); height: min(30vw, 250px); }
+/* Landscape: side-by-side */
+@media (orientation: landscape) and (min-height: 400px) {
+  .dock-main { flex-direction: row; gap: 24px; }
+  .dock-artwork { width: min(30vw, 220px); height: min(30vw, 220px); }
+  .dock-queue-section { max-width: 280px; }
+  .dock-queue-list { max-height: 160px; }
 }
-@media (max-width: 600px) {
-  .dock-main { flex-direction: column; gap: 16px; }
-  .dock-artwork { width: min(50vw, 200px); height: min(50vw, 200px); }
-  .dock-queue-section { display: none; }
-  .dock-time { font-size: 1.4rem; }
+
+/* Very small screens */
+@media (max-height: 600px) {
+  .dock-artwork { width: min(40vw, 160px); height: min(40vw, 160px); }
+  .dock-play-btn { width: 48px; height: 48px; }
+  .dock-play-btn svg { width: 36px; height: 36px; }
+  .dock-ctrl-btn svg { width: 22px; height: 22px; }
+  .dock-buttons { gap: 20px; }
+  .dock-time { font-size: 1.2rem; }
+  .dock-title { font-size: 0.95rem; }
+  .dock-artist { font-size: 0.75rem; }
+  .dock-queue-list { max-height: 80px; }
 }

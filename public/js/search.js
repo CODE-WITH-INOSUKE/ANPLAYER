@@ -185,14 +185,18 @@ function renderSearchResults(results) {
 }
 
 function addToQueueFromSearch(youtubeId, title, artist, album, duration, artwork) {
-  const song = { youtube_id: youtubeId, title, artist, album, duration, artwork };
-  // Save song to server and add to queue
-  sendWS('load', { song, url: '' });
-  // Also add to queue
-  setTimeout(() => {
-    if (currentSongId) sendWS('addToQueue', { songId: currentSongId });
-  }, 500);
-  showToast('Added to queue');
+  fetch('/api/queue/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ youtube_id: youtubeId, title, artist, album, duration, artwork })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      showToast('Added to queue');
+    }
+  })
+  .catch(() => {});
 }
 
 function searchAlbum(title, artist) {

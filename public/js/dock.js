@@ -1,45 +1,53 @@
-// ANPlayer - Dock Mode
-
 document.addEventListener('DOMContentLoaded', () => {
-  // Clock
   updateClock();
   setInterval(updateClock, 1000);
 
-  // Fullscreen
   document.addEventListener('dblclick', toggleFullscreen);
 
-  // Auto-hide
   const dockContainer = document.getElementById('dockContainer');
   let hideTimer = null;
   let isIdle = false;
 
+  function startHideTimer(delay) {
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      dockContainer.classList.add('auto-hide');
+      dockContainer.classList.remove('touch-active');
+      isIdle = true;
+    }, delay);
+  }
+
+  function showUI() {
+    dockContainer.classList.remove('auto-hide');
+    isIdle = false;
+    clearTimeout(hideTimer);
+  }
+
   if (dockContainer) {
     dockContainer.addEventListener('mousemove', () => {
-      dockContainer.classList.remove('auto-hide');
-      isIdle = false;
-      clearTimeout(hideTimer);
-      hideTimer = setTimeout(() => {
-        dockContainer.classList.add('auto-hide');
-        isIdle = true;
-      }, 3000);
+      showUI();
+      startHideTimer(3000);
     });
 
-    dockContainer.addEventListener('touchstart', () => {
+    dockContainer.addEventListener('mouseleave', () => {
+      startHideTimer(1000);
+    });
+
+    dockContainer.addEventListener('touchstart', (e) => {
       if (isIdle) {
         dockContainer.classList.remove('auto-hide');
+        dockContainer.classList.add('touch-active');
         isIdle = false;
         clearTimeout(hideTimer);
+        startHideTimer(5000);
       } else {
+        dockContainer.classList.add('touch-active');
         clearTimeout(hideTimer);
-        hideTimer = setTimeout(() => {
-          dockContainer.classList.add('auto-hide');
-          isIdle = true;
-        }, 4000);
+        startHideTimer(5000);
       }
     });
   }
 
-  // Fetch queue for dock display
   fetchQueueForDock();
   setInterval(fetchQueueForDock, 5000);
 });
@@ -77,12 +85,12 @@ function fetchQueueForDock() {
       if (!list) return;
       if (queue.length > 0) {
         const currentYoutubeId = currentState?.song?.youtube_id;
-        list.innerHTML = queue.map((item, i) => `
+        list.innerHTML = queue.map((item) => `
           <div class="dock-queue-item ${item.youtube_id === currentYoutubeId ? 'current' : ''}">
             <div class="dock-queue-item-img">
               ${item.artwork ? `<img src="${item.artwork}" alt="" loading="lazy">` :
-                `<div style="width:28px;height:28px;background:#111;border-radius:4px;display:flex;align-items:center;justify-content:center">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                `<div style="width:24px;height:24px;background:#111;border-radius:4px;display:flex;align-items:center;justify-content:center">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
                  </div>`}
             </div>
             <div class="dock-queue-item-info">

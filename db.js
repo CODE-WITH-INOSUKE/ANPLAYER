@@ -207,28 +207,30 @@ function save() {
   }
 }
 
-// Convert object params with named placeholders (@key, :key, $key) to positional ?
+// Convert object params to positional ? array for sql.js
 function normalizeParams(sql, params) {
   if (!params || Array.isArray(params)) return { sql, bind: params || [] };
   const bind = [];
-  // Replace named params with ? and collect values in order of appearance
-  let idx = 0;
-  const paramKeys = Object.keys(params);
-  const paramMap = {};
-  for (const k of paramKeys) {
-    paramMap['@' + k] = k;
-    paramMap[':' + k] = k;
-    paramMap['$' + k] = k;
+  // Check if SQL has any named placeholders (@key, :key, $key)
+  const hasNamed = /[@:$]\w+/.test(sql);
+  if (hasNamed) {
+    const converted = sql.replace(/[@:$]\w+/g, (match) => {
+      const key = match.slice(1);
+      if (key in params) {
+        bind.push(params[key]);
+        return '?';
+      }
+      return match;
+    });
+    return { sql: converted, bind };
   }
-  const converted = sql.replace(/[@:$]\w+/g, (match) => {
-    const key = match.slice(1);
-    if (key in params) {
-      bind.push(params[key]);
-      return '?';
-    }
-    return match;
-  });
-  return { sql: converted, bind };
+  // SQL uses ? placeholders with an object param - extract values in key order
+  const keys = Object.keys(params);
+  const count = (sql.match(/\?/g) || []).length;
+  for (let i = 0; i < count && i < keys.length; i++) {
+    bind.push(params[keys[i]]);
+  }
+  return { sql, bind };
 }
 
 function query(sql, params = []) {
@@ -258,10 +260,12 @@ function get(sql, params = []) {
 function run(sql, params = []) {
   const { sql: sql2, bind } = normalizeParams(sql, params);
   db.run(sql2, bind);
+  const stmt = db.prepare('SELECT last_insert_rowid() as id');
+  stmt.step();
+  const row = stmt.getAsObject();
+  stmt.free();
   save();
-  const result = db.exec('SELECT last_insert_rowid() as id');
-  const id = result.length > 0 && result[0].values.length > 0 ? result[0].values[0][0] : 0;
-  return { lastInsertRowid: id };
+  return { lastInsertRowid: row.id || 0 };
 }
 
 function close() {
