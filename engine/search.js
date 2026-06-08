@@ -60,7 +60,6 @@ async function searchYouTube(query_str, type = 'all') {
       '--dump-json',
       '--no-warnings',
       '--flat-playlist',
-      '--extract-flat',
       '--skip-download',
     ]);
 
