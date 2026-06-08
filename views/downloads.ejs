@@ -1,0 +1,66 @@
+<%- include('partials/header') %>
+<div class="page downloads-page">
+  <div class="page-header">
+    <h1>Downloads</h1>
+    <span class="page-subtitle"><%= downloads.length %> total</span>
+  </div>
+
+  <div class="downloads-list">
+    <% if (downloads.length === 0) { %>
+    <div class="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <p>No downloads yet</p>
+      <p class="text-secondary">Search for songs and tap the download button</p>
+    </div>
+    <% } else { %>
+      <% downloads.forEach(function(dl) { %>
+      <div class="download-item" data-id="<%= dl.id %>" data-song-id="<%= dl.song_id %>">
+        <div class="download-item-artwork">
+          <% if (dl.artwork) { %>
+          <img src="/api/artwork?url=<%= encodeURIComponent(dl.artwork) %>" alt="" loading="lazy">
+          <% } else { %>
+          <div class="download-item-placeholder">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          </div>
+          <% } %>
+        </div>
+        <div class="download-item-info">
+          <div class="download-item-title"><%= dl.title || 'Unknown' %></div>
+          <div class="download-item-artist"><%= dl.artist || '' %></div>
+          <div class="download-item-meta">
+            <%= dl.format ? dl.format.toUpperCase() : '' %>
+            <%= dl.quality ? dl.quality + 'kbps' : '' %>
+            <%= dl.file_path ? ' &middot; ' + Math.round((dl.file_size || 0) / 1024 / 1024 * 10) / 10 + 'MB' : '' %>
+          </div>
+        </div>
+        <div class="download-item-right">
+          <% if (dl.status === 'downloading') { %>
+          <div class="download-progress-bar">
+            <div class="download-progress-fill" style="width:<%= Math.round(dl.progress || 0) %>%"></div>
+          </div>
+          <span class="download-progress-text"><%= Math.round(dl.progress || 0) %>%</span>
+          <% } else if (dl.status === 'completed') { %>
+          <span class="download-status completed">Completed</span>
+          <% if (dl.file_path) { %>
+          <button class="song-action-btn" onclick="loadSong({id: <%= dl.song_id %>, song_id: <%= dl.song_id %>, title: '<%= (dl.title || '').replace(/'/g, "\\'") %>', artist: '<%= (dl.artist || '').replace(/'/g, "\\'") %>', url: ''})" title="Play">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>
+          <% } %>
+          <% } else if (dl.status === 'failed') { %>
+          <span class="download-status failed">Failed</span>
+          <% } else if (dl.status === 'cancelled') { %>
+          <span class="download-status cancelled">Cancelled</span>
+          <% } else { %>
+          <span class="download-status pending">Pending</span>
+          <% } %>
+        </div>
+      </div>
+      <% }) %>
+    <% } %>
+  </div>
+</div>
+<%- include('partials/footer') %>

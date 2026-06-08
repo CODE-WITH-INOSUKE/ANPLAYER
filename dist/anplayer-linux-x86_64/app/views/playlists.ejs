@@ -1,0 +1,46 @@
+<%- include('partials/header') %>
+<div class="page playlists-page">
+  <div class="page-header">
+    <h1>Playlists</h1>
+    <a href="/playlists/new" class="btn">New Playlist</a>
+  </div>
+
+  <div class="import-section">
+    <h3>Import from YouTube</h3>
+    <form method="POST" action="/playlists/import" class="import-form">
+      <input type="url" name="url" placeholder="Paste YouTube playlist URL..." required class="import-input">
+      <input type="text" name="name" placeholder="Playlist name (optional)" class="import-input">
+      <button type="submit" class="btn">Import</button>
+    </form>
+  </div>
+
+  <% if (playlists.length > 0) { %>
+  <div class="grid-view">
+    <% playlists.forEach(function(pl) { %>
+    <div class="grid-card" onclick="window.location.href='/playlists/<%= pl.id %>'">
+      <div class="grid-artwork">
+        <div class="grid-artwork-placeholder" style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+      </div>
+      <div class="grid-info">
+        <div class="grid-title"><%= pl.name %></div>
+        <div class="grid-subtitle"><%= pl.song_count %> tracks</div>
+        <div class="grid-subtitle" style="font-size:11px;opacity:0.5"><%= new Date(pl.date_modified).toLocaleDateString() %></div>
+      </div>
+      <form method="POST" action="/playlists/<%= pl.id %>/delete" class="grid-delete" onsubmit="return confirm('Delete this playlist?')">
+        <button type="submit" class="song-action-btn" onclick="event.stopPropagation()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </form>
+    </div>
+    <% }) %>
+  </div>
+  <% } else { %>
+  <div class="empty-state">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+    <p>No playlists yet. Create one or import a YouTube playlist.</p>
+  </div>
+  <% } %>
+</div>
+<%- include('partials/footer') %>

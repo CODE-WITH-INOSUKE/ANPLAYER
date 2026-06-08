@@ -1,11 +1,12 @@
 {
   "name": "anplayer",
   "version": "1.0.0",
-  "description": "Premium self-hosted music streaming platform for Termux",
+  "description": "Premium self-hosted music streaming platform for Linux & Termux",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "setup": "bash scripts/setup.sh"
+    "setup": "bash scripts/setup.sh",
+    "bundle": "bash scripts/bundle.sh"
   },
   "dependencies": {
     "ejs": "^3.1.9",

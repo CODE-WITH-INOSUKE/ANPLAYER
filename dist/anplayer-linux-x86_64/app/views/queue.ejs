@@ -1,0 +1,80 @@
+<%- include('partials/header') %>
+<div class="page queue-page">
+  <div class="page-header">
+    <h1>Queue</h1>
+    <div class="page-actions">
+      <form method="POST" action="/queue/clear" style="display:inline">
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Clear the queue?')">Clear</button>
+      </form>
+      <button class="btn" onclick="saveQueueToPlaylist()">Save as Playlist</button>
+    </div>
+  </div>
+
+  <section class="section">
+    <h2>Up Next (<%= queue.length %>)</h2>
+    <% if (queue.length > 0) { %>
+    <div class="song-list" id="queueList">
+      <% queue.forEach(function(item, idx) { %>
+      <div class="song-item" draggable="true" data-id="<%= item.id %>" data-pos="<%= idx %>" onclick="loadSong({id: <%= item.song_id %>, title: '<%= item.title.replace(/'/g, "\\'") %>', artist: '<%= item.artist.replace(/'/g, "\\'") %>', album: '<%= (item.album || '').replace(/'/g, "\\'") %>', duration: <%= item.duration %>, artwork: '<%= item.artwork || '' %>', youtube_id: '<%= item.youtube_id %>'})">
+        <div class="song-drag-handle">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="2"/><circle cx="15" cy="5" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="9" cy="19" r="2"/><circle cx="15" cy="19" r="2"/></svg>
+        </div>
+        <div class="song-artwork">
+          <% if (item.artwork) { %>
+          <img src="<%= item.artwork %>" alt="" loading="lazy">
+          <% } else { %>
+          <div class="song-artwork-placeholder">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          </div>
+          <% } %>
+        </div>
+        <div class="song-info">
+          <div class="song-title"><%= item.title %></div>
+          <div class="song-artist"><%= item.artist %></div>
+        </div>
+        <div class="song-duration"><%= formatDuration(item.duration) %></div>
+        <div class="song-actions">
+          <form method="POST" action="/queue/remove/<%= item.id %>" style="display:inline">
+            <button type="submit" class="song-action-btn" onclick="event.stopPropagation()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            </button>
+          </form>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% } else { %>
+    <div class="empty-state">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <p>Queue is empty. Search for songs and add them to queue.</p>
+    </div>
+    <% } %>
+  </section>
+
+  <% if (history.length > 0) { %>
+  <section class="section">
+    <h2>Recently Played</h2>
+    <div class="song-list">
+      <% history.forEach(function(item) { %>
+      <div class="song-item" onclick="loadSong({id: <%= item.id %>, title: '<%= item.title.replace(/'/g, "\\'") %>', artist: '<%= item.artist.replace(/'/g, "\\'") %>', album: '<%= (item.album || '').replace(/'/g, "\\'") %>', duration: <%= item.duration %>, artwork: '<%= item.artwork || '' %>', youtube_id: '<%= item.youtube_id %>'})">
+        <div class="song-artwork">
+          <% if (item.artwork) { %>
+          <img src="<%= item.artwork %>" alt="" loading="lazy">
+          <% } else { %>
+          <div class="song-artwork-placeholder">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          </div>
+          <% } %>
+        </div>
+        <div class="song-info">
+          <div class="song-title"><%= item.title %></div>
+          <div class="song-artist"><%= item.artist %></div>
+        </div>
+        <div class="song-duration"><%= formatDuration(item.duration) %></div>
+      </div>
+      <% }) %>
+    </div>
+  </section>
+  <% } %>
+</div>
+<%- include('partials/footer') %>

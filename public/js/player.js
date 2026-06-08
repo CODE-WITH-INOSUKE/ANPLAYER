@@ -12,14 +12,14 @@ document.addEventListener('DOMContentLoaded', () => {
     dockVolumeSlider.addEventListener('input', () => setVolume(dockVolumeSlider.value));
   }
 
-  // Media Session API
+  // Media Session API -> drive the browser <audio> element
   if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('play', () => sendWS('play'));
-    navigator.mediaSession.setActionHandler('pause', () => sendWS('pause'));
-    navigator.mediaSession.setActionHandler('previoustrack', () => sendWS('prev'));
-    navigator.mediaSession.setActionHandler('nexttrack', () => sendWS('next'));
+    navigator.mediaSession.setActionHandler('play', () => togglePlay());
+    navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+    navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
+    navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
     navigator.mediaSession.setActionHandler('seekto', (details) => {
-      if (details.seekTime) sendWS('seek', { position: details.seekTime });
+      if (details.seekTime != null) seekTo(details.seekTime);
     });
   }
 

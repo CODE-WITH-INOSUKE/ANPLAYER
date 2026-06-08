@@ -1,0 +1,141 @@
+<%- include('partials/header') %>
+<div class="page library-page">
+  <div class="library-header">
+    <h1>
+      <% if (section === 'songs') { %>Songs<% } %>
+      <% if (section === 'artists') { %>Artists<% } %>
+      <% if (section === 'albums') { %>Albums<% } %>
+      <% if (section === 'favorites') { %>Favorites<% } %>
+      <% if (section === 'downloads') { %>Downloads<% } %>
+      <% if (section === 'playlists') { %>Playlists<% } %>
+      <% if (section === 'recent') { %>Recently Played<% } %>
+      <% if (section === 'most') { %>Most Played<% } %>
+    </h1>
+  </div>
+
+  <div class="library-tabs">
+    <a href="/library?section=songs" class="library-tab <%= section === 'songs' ? 'active' : '' %>">Songs</a>
+    <a href="/library?section=artists" class="library-tab <%= section === 'artists' ? 'active' : '' %>">Artists</a>
+    <a href="/library?section=albums" class="library-tab <%= section === 'albums' ? 'active' : '' %>">Albums</a>
+    <a href="/library?section=favorites" class="library-tab <%= section === 'favorites' ? 'active' : '' %>">Favorites</a>
+    <a href="/library?section=downloads" class="library-tab <%= section === 'downloads' ? 'active' : '' %>">Downloads</a>
+    <a href="/library?section=recent" class="library-tab <%= section === 'recent' ? 'active' : '' %>">Recent</a>
+    <a href="/library?section=most" class="library-tab <%= section === 'most' ? 'active' : '' %>">Most Played</a>
+  </div>
+
+  <div class="library-content">
+    <% if ((section === 'artists' || section === 'albums') && items.length === 0) { %>
+      <% if (section === 'artists') { %>
+        <div class="empty-state">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <p>No artists yet. Search and play some music first.</p>
+        </div>
+      <% } %>
+      <% if (section === 'albums') { %>
+        <div class="empty-state">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+          <p>No albums yet. Search and play some music first.</p>
+        </div>
+      <% } %>
+    <% } else if (section === 'songs' || section === 'favorites' || section === 'downloads' || section === 'recent' || section === 'most') { %>
+      <% if (items.length === 0) { %>
+        <div class="empty-state">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <p>
+            <% if (section === 'favorites') { %>No favorites yet. Click the heart icon to add songs.<% } %>
+            <% if (section === 'downloads') { %>No downloads yet. Download songs from search results.<% } %>
+            <% if (section === 'recent') { %>No recently played songs.<% } %>
+            <% if (section === 'most') { %>No songs played yet.<% } %>
+            <% if (section === 'songs') { %>No songs in your library. Search and play some music first.<% } %>
+          </p>
+        </div>
+      <% } else { %>
+      <div class="song-list">
+        <% items.forEach(function(song) { %>
+        <div class="song-item" onclick="loadSong({id: <%= song.id %>, title: '<%= song.title.replace(/'/g, "\\'") %>', artist: '<%= song.artist.replace(/'/g, "\\'") %>', album: '<%= (song.album || '').replace(/'/g, "\\'") %>', duration: <%= song.duration %>, artwork: '<%= song.artwork || '' %>', youtube_id: '<%= song.youtube_id %>'})">
+          <div class="song-artwork">
+            <% if (song.artwork) { %>
+            <img src="<%= song.artwork %>" alt="" loading="lazy">
+            <% } else { %>
+            <div class="song-artwork-placeholder">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+            </div>
+            <% } %>
+          </div>
+          <div class="song-info">
+            <div class="song-title"><%= song.title %></div>
+            <div class="song-artist"><%= song.artist %></div>
+          </div>
+          <div class="song-duration"><%= formatDuration(song.duration) %></div>
+          <div class="song-actions">
+            <button class="song-action-btn" onclick="event.stopPropagation(); toggleFavorite(<%= song.id %>)" title="Favorite">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+            <button class="song-action-btn" onclick="event.stopPropagation(); addToQueue(<%= song.id %>)" title="Add to Queue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+    <% } else if (section === 'artists') { %>
+      <div class="grid-view">
+        <% items.forEach(function(artist) { %>
+        <div class="grid-card" onclick="window.location.href='/library/artists/<%= artist.id %>'">
+          <div class="grid-artwork">
+            <% if (artist.artwork) { %>
+            <img src="<%= artist.artwork %>" alt="" loading="lazy">
+            <% } else { %>
+            <div class="grid-artwork-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <% } %>
+          </div>
+          <div class="grid-info">
+            <div class="grid-title"><%= artist.name %></div>
+            <div class="grid-subtitle"><%= artist.song_count %> songs</div>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    <% } else if (section === 'albums') { %>
+      <div class="grid-view">
+        <% items.forEach(function(album) { %>
+        <div class="grid-card" onclick="window.location.href='/library/albums/<%= album.id %>'">
+          <div class="grid-artwork">
+            <% if (album.artwork) { %>
+            <img src="<%= album.artwork %>" alt="" loading="lazy">
+            <% } else { %>
+            <div class="grid-artwork-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <% } %>
+          </div>
+          <div class="grid-info">
+            <div class="grid-title"><%= album.title %></div>
+            <div class="grid-subtitle"><%= album.artist %> • <%= album.song_count %> tracks</div>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    <% } else if (section === 'playlists') { %>
+      <div class="grid-view">
+        <% items.forEach(function(pl) { %>
+        <div class="grid-card" onclick="window.location.href='/playlists/<%= pl.id %>'">
+          <div class="grid-artwork">
+            <div class="grid-artwork-placeholder" style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+          </div>
+          <div class="grid-info">
+            <div class="grid-title"><%= pl.name %></div>
+            <div class="grid-subtitle"><%= pl.song_count %> tracks</div>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</div>
+<%- include('partials/footer') %>

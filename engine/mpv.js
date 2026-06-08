@@ -31,7 +31,7 @@ function checkMpv() {
 function start() {
   checkMpv().then((found) => {
     if (!found) {
-      console.error('mpv not found in PATH. Install mpv and ensure it is accessible.');
+      console.log('mpv not found - server-side playback disabled (audio plays in the browser).');
       return;
     }
     if (mpvProcess) return;

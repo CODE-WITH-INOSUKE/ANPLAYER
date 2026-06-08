@@ -37,8 +37,8 @@ function sendWS(type, data = {}) {
 function handleWSMessage(msg) {
   switch(msg.type) {
     case 'state':
-      currentState = msg.data;
-      updatePlayerUI(msg.data);
+      // Playback is driven by the browser <audio> element, not server-side mpv.
+      // Ignore mpv state broadcasts so they don't override the local UI.
       break;
     case 'ended':
       break;
@@ -59,35 +59,197 @@ function handleWSMessage(msg) {
     case 'queueSaved':
       showToast('Queue saved as playlist');
       break;
+    case 'downloadProgress':
+      updateDownloadProgress(msg.data);
+      break;
     case 'downloads':
       break;
   }
 }
 
+// ---- Browser audio playback ----------------------------------------------
+const PERSIST_KEY = 'anplayer_playback';
+let audio = null;
+let currentSong = null;
+let audioReady = false;
+
+function getAudio() {
+  if (audio) return audio;
+  audio = document.getElementById('audioPlayer');
+  if (!audio) {
+    audio = document.createElement('audio');
+    audio.id = 'audioPlayer';
+    audio.preload = 'auto';
+    document.body.appendChild(audio);
+  }
+  if (!audioReady) { setupAudio(); audioReady = true; }
+  return audio;
+}
+
+function audioState() {
+  const a = getAudio();
+  return {
+    song: currentSong,
+    playing: !a.paused && !a.ended && !!currentSong,
+    paused: a.paused,
+    position: a.currentTime || 0,
+    duration: (a.duration && isFinite(a.duration)) ? a.duration : (currentSong ? currentSong.duration || 0 : 0),
+  };
+}
+
+function syncUI() {
+  currentState = audioState();
+  updatePlayerUI(currentState);
+}
+
+function persistState() {
+  if (!currentSong || !currentSongId) return;
+  try {
+    const a = getAudio();
+    localStorage.setItem(PERSIST_KEY, JSON.stringify({
+      song: currentSong,
+      songId: currentSongId,
+      position: a.currentTime || 0,
+      playing: !a.paused,
+      volume: Math.round((a.volume != null ? a.volume : 0.8) * 100),
+    }));
+  } catch (e) {}
+}
+
+function setupAudio() {
+  const a = audio;
+  a.addEventListener('play', () => { syncUI(); persistState(); updateMediaSession(); });
+  a.addEventListener('pause', () => { syncUI(); persistState(); });
+  a.addEventListener('timeupdate', () => { syncUI(); });
+  a.addEventListener('durationchange', syncUI);
+  a.addEventListener('loadedmetadata', syncUI);
+  a.addEventListener('ended', () => { nextTrack(); });
+  a.addEventListener('error', () => {
+    if (currentSong) showToast('Playback error');
+  });
+  // Persist position periodically so navigation can resume.
+  setInterval(persistState, 4000);
+}
+
+function updateMediaSession() {
+  if (!('mediaSession' in navigator) || !currentSong) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: currentSong.title || 'Unknown',
+      artist: currentSong.artist || '',
+      album: currentSong.album || '',
+      artwork: currentSong.artwork ? [{ src: currentSong.artwork, sizes: '320x180', type: 'image/jpeg' }] : [],
+    });
+  } catch (e) {}
+}
+
 // Player Controls (global functions)
 function loadSong(song) {
-  currentSongId = song.id || song.song_id;
-  sendWS('load', { song, url: song.url || '' });
+  const a = getAudio();
+  // Normalize: search results use youtube_id as id; downloads pass song_id
+  currentSong = {
+    id: song.id || song.song_id || null,
+    title: song.title || 'Unknown',
+    artist: song.artist || 'Unknown',
+    album: song.album || '',
+    duration: song.duration || 0,
+    artwork: song.artwork || '',
+    youtube_id: song.youtube_id || (typeof song.id === 'string' ? song.id : '') || '',
+  };
+
+  const begin = (dbId) => {
+    currentSongId = dbId;
+    currentSong.id = dbId;
+    a.src = `/api/stream/${dbId}`;
+    a.play().catch(() => {});
+    syncUI();
+    updateMediaSession();
+    persistState();
+  };
+
+  // A numeric DB id already exists (e.g. from library/downloads).
+  const numericId = Number(song.song_id || song.id);
+  if (Number.isInteger(numericId) && numericId > 0 && !song.youtube_id) {
+    return begin(numericId);
+  }
+
+  // Register by youtube_id to get/create the DB row, then stream it.
+  fetch('/api/play/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      youtube_id: currentSong.youtube_id,
+      title: currentSong.title,
+      artist: currentSong.artist,
+      album: currentSong.album,
+      duration: currentSong.duration,
+      artwork: currentSong.artwork,
+    }),
+  })
+    .then(r => r.json())
+    .then(d => {
+      if (d && d.success) {
+        updateFavoriteBtn(!!d.is_favorite);
+        begin(d.id);
+      } else if (Number.isInteger(numericId) && numericId > 0) {
+        begin(numericId);
+      } else {
+        showToast('Could not play this track');
+      }
+    })
+    .catch(() => {
+      if (Number.isInteger(numericId) && numericId > 0) begin(numericId);
+      else showToast('Could not play this track');
+    });
 }
 
 function togglePlay() {
-  if (currentState.playing) sendWS('pause');
-  else sendWS('play');
+  const a = getAudio();
+  if (a.paused) a.play().catch(() => {});
+  else a.pause();
 }
 
-function nextTrack() { sendWS('next'); }
-function prevTrack() { sendWS('prev'); }
+function nextTrack() {
+  fetch('/api/queue')
+    .then(r => r.json())
+    .then(q => {
+      if (q && q.length) {
+        const item = q[0];
+        loadSong({
+          song_id: item.song_id,
+          id: item.song_id,
+          youtube_id: item.youtube_id,
+          title: item.title,
+          artist: item.artist,
+          album: item.album,
+          duration: item.duration,
+          artwork: item.artwork,
+        });
+        sendWS('removeFromQueue', { queueId: item.id });
+      }
+    })
+    .catch(() => {});
+}
+
+function prevTrack() {
+  const a = getAudio();
+  a.currentTime = 0;
+}
 
 function setVolume(vol) {
-  sendWS('volume', { volume: parseInt(vol) });
+  const a = getAudio();
+  a.volume = Math.max(0, Math.min(100, parseInt(vol) || 0)) / 100;
+  persistState();
 }
 
 function setSpeed(speed) {
-  sendWS('speed', { speed: parseFloat(speed) });
+  const a = getAudio();
+  a.playbackRate = parseFloat(speed) || 1.0;
 }
 
 function seekTo(position) {
-  sendWS('seek', { position });
+  const a = getAudio();
+  if (isFinite(position)) a.currentTime = position;
 }
 
 function toggleMute() {
@@ -360,12 +522,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   connectWebSocket();
 
-  // Restore volume
-  fetch('/api/volume').then(r => r.json()).then(data => {
-    const vol = data.volume || 80;
-    const sliders = document.querySelectorAll('.volume-slider, .dock-volume-slider');
-    sliders.forEach(s => s.value = vol);
-  }).catch(() => {});
+  // Restore playback + volume across page navigations (browser audio doesn't
+  // survive a full page load, so we resume from saved state).
+  restorePlayback();
 
   // Search clear button
   const searchInput = document.getElementById('searchInput');
@@ -384,6 +543,40 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// Restore playback state saved before the last navigation.
+function restorePlayback() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(PERSIST_KEY) || 'null'); } catch (e) {}
+
+  const vol = saved && saved.volume != null ? saved.volume : 80;
+  const sliders = document.querySelectorAll('.volume-slider, .dock-volume-slider, #volumeSlider, #dockVolumeSlider');
+  sliders.forEach(s => { s.value = vol; });
+
+  const a = getAudio();
+  a.volume = vol / 100;
+
+  if (!saved || !saved.songId || !saved.song) return;
+
+  currentSong = saved.song;
+  currentSongId = saved.songId;
+  a.src = `/api/stream/${saved.songId}`;
+  a.addEventListener('loadedmetadata', () => {
+    try { if (saved.position) a.currentTime = saved.position; } catch (e) {}
+  }, { once: true });
+
+  syncUI();
+  updateMediaSession();
+
+  // Resume if it was playing. Autoplay may be blocked until a user gesture;
+  // if so, start on the first interaction.
+  if (saved.playing) {
+    a.play().catch(() => {
+      const resume = () => { a.play().catch(() => {}); document.removeEventListener('pointerdown', resume); };
+      document.addEventListener('pointerdown', resume, { once: true });
+    });
+  }
+}
+
 // Format duration for EJS
 function formatDuration(d) {
   if (!d || isNaN(d)) return '0:00';
@@ -397,4 +590,50 @@ function clearSearchHistory() {
   fetch('/search/history/clear', { method: 'POST' })
     .then(() => location.reload())
     .catch(() => location.reload());
+}
+
+// Download progress handler
+function updateDownloadProgress(data) {
+  const { id, songId, progress, status } = data;
+  const el = document.querySelector(`.download-item[data-id="${id}"]`) ||
+             document.querySelector(`.download-item[data-song-id="${songId}"]`);
+  if (el) {
+    const fill = el.querySelector('.download-progress-fill');
+    const text = el.querySelector('.download-progress-text');
+    const statusEl = el.querySelector('.download-status');
+    if (fill) fill.style.width = `${Math.round(progress)}%`;
+    if (text) text.textContent = `${Math.round(progress)}%`;
+    if (statusEl) {
+      statusEl.className = `download-status ${status}`;
+      statusEl.textContent = status;
+    }
+    if (status === 'completed') {
+      el.classList.add('completed');
+      setTimeout(() => el.remove(), 3000);
+    }
+  }
+  // Also update any toasts or notifications
+  if (status === 'completed') {
+    showToast('Download completed');
+  } else if (status === 'failed') {
+    showToast('Download failed');
+  }
+}
+
+// Trigger download from search result
+function downloadFromSearch(youtubeId, title, artist, album, duration, artwork) {
+  fetch('/api/download', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ youtube_id: youtubeId, title, artist, album, duration, artwork })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      showToast('Download started');
+    } else {
+      showToast('Download failed: ' + (data.error || 'Unknown error'));
+    }
+  })
+  .catch(() => showToast('Download failed'));
 }

@@ -38,13 +38,17 @@ function spawnYtDlp(args) {
   });
 }
 
+function getThumbnail(id) {
+  return id ? `https://i.ytimg.com/vi/${id}/mqdefault.jpg` : '';
+}
+
 function parseSong(item) {
   return {
     title: item.title || 'Unknown',
     artist: item.artist || item.uploader || item.channel || 'Unknown',
     album: item.album || item.playlist_title || '',
     duration: item.duration || 0,
-    artwork: item.thumbnail || '',
+    artwork: item.thumbnail || getThumbnail(item.id),
     youtube_id: item.id || '',
     source: 'youtube',
     url: item.webpage_url || `https://youtube.com/watch?v=${item.id}`,
@@ -69,11 +73,13 @@ async function searchYouTube(query_str, type = 'all') {
         const song = parseSong(item);
         results.songs.push(song);
 
-        if (item.playlist_title) {
+        // Build album from playlist data
+        const playlist = item.playlist_title || item.album;
+        if (playlist) {
           results.albums.push({
-            title: item.playlist_title,
+            title: playlist,
             artist: item.artist || item.uploader || 'Unknown',
-            artwork: item.thumbnail || '',
+            artwork: getThumbnail(item.id),
             song_count: item.playlist_count || 0,
           });
         }
@@ -84,7 +90,7 @@ async function searchYouTube(query_str, type = 'all') {
   if (type === 'album' || type === 'all') {
     try {
       const albumLines = await spawnYtDlp([
-        `ytsearch5:${query_str} album`,
+        `ytsearch10:${query_str}`,
         '--dump-json',
         '--no-warnings',
         '--flat-playlist',

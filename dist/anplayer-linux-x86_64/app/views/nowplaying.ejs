@@ -1,0 +1,107 @@
+<%- include('partials/header') %>
+<div class="page nowplaying-page" id="nowplayingPage">
+  <div class="np-background" id="npBackground"></div>
+
+  <div class="np-content">
+    <div class="np-artwork-section">
+      <div class="np-artwork-container" id="npArtworkContainer">
+        <div class="np-artwork" id="npArtwork">
+          <div class="np-artwork-placeholder">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          </div>
+        </div>
+        <div class="np-vinyl-overlay"></div>
+      </div>
+    </div>
+
+    <div class="np-info">
+      <div class="np-title" id="npTitle">Not Playing</div>
+      <div class="np-artist" id="npArtist">No tracks in queue</div>
+      <div class="np-album" id="npAlbum"></div>
+    </div>
+
+    <div class="np-progress">
+      <div class="np-progress-bar" id="npProgressBar">
+        <div class="np-progress-fill" id="npProgressFill"></div>
+        <div class="np-progress-thumb" id="npProgressThumb"></div>
+      </div>
+      <div class="np-time">
+        <span id="npCurrentTime">0:00</span>
+        <span id="npTotalTime">0:00</span>
+      </div>
+    </div>
+
+    <div class="np-controls">
+      <button class="np-control-btn" onclick="prevTrack()" aria-label="Previous">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+      </button>
+      <button class="np-control-btn np-shuffle-btn" id="shuffleBtn" onclick="toggleShuffle()" aria-label="Shuffle">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+      </button>
+      <button class="np-play-btn" id="npPlayBtn" onclick="togglePlay()" aria-label="Play/Pause">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" id="npPlayIcon"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </button>
+      <button class="np-control-btn np-repeat-btn" id="repeatBtn" onclick="toggleRepeat()" aria-label="Repeat">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      </button>
+      <button class="np-control-btn" onclick="nextTrack()" aria-label="Next">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18 6h2v12h-2zm-3.5 6l-8.5 6V6z"/></svg>
+      </button>
+    </div>
+
+    <div class="np-extras">
+      <div class="np-volume">
+        <button class="np-vol-btn" onclick="toggleMute()" aria-label="Volume">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="volIcon"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </button>
+        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80" oninput="setVolume(this.value)">
+      </div>
+      <div class="np-like-btn" id="npLikeBtn" onclick="toggleFavorite()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="np-visualizer" id="visualizer">
+    <canvas id="visualizerCanvas"></canvas>
+  </div>
+
+  <div class="np-queue-panel" id="queuePanel">
+    <div class="queue-panel-header">
+      <h3>Queue</h3>
+      <div class="queue-panel-actions">
+        <button onclick="saveQueue()">Save</button>
+        <button onclick="clearQueue()">Clear</button>
+        <button onclick="toggleQueuePanel()">Close</button>
+      </div>
+    </div>
+    <div class="queue-panel-list" id="npQueueList">
+      <% if (queue.length > 0) { %>
+        <% queue.forEach(function(item, idx) { %>
+        <div class="queue-item" draggable="true" data-id="<%= item.id %>">
+          <div class="queue-item-pos"><%= idx + 1 %></div>
+          <div class="queue-item-artwork">
+            <% if (item.artwork) { %>
+            <img src="<%= item.artwork %>" alt="" loading="lazy">
+            <% } else { %>
+            <div class="queue-item-placeholder">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+            </div>
+            <% } %>
+          </div>
+          <div class="queue-item-info">
+            <div class="queue-item-title"><%= item.title %></div>
+            <div class="queue-item-artist"><%= item.artist %></div>
+          </div>
+          <button class="queue-item-remove" onclick="removeFromQueue(<%= item.id %>)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <% }) %>
+      <% } else { %>
+        <div class="queue-empty">Queue is empty</div>
+      <% } %>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>
